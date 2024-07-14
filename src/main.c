@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "config.h"
-#include "interface.h"
-#include "logger.h"
+#include "interface/interface.h"
+#include "misc/config.h"
+#include "misc/logger.h"
 
 int main() {
     Logger* logger = logger_create(256);

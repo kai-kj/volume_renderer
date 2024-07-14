@@ -22,10 +22,10 @@ target_include_directories(
 add_executable(
         volume_renderer
         src/main.c
-        src/logger.c
-        src/interface.c
-        src/renderer.c
-        src/config.c
+        src/misc/logger.c
+        src/interface/interface.c
+        src/renderer/renderer.c
+        src/misc/config.c
 )
 
 target_include_directories(

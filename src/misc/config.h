@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "logger.h"
+#include "misc/logger.h"
 #include "raylib.h"
 
 typedef struct Config {

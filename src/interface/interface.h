@@ -1,7 +1,7 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
-#include "config.h"
+#include "misc/config.h"
 
 void interface_create(Config* config);
 
