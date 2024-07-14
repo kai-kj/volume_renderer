@@ -7,7 +7,7 @@
 
 int main() {
     Logger* logger = logger_create(256);
-    Config* config = config_create_default(logger);
+    Config* config = config_create(logger, "data/config.ini");
 
     interface_create(config);
 

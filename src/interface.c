@@ -19,9 +19,11 @@ static Vector2 draw_text(Vector2 pos, Color color, char* fmt, ...) {
     vsnprintf(text, textLen + 1, fmt, args);
     va_end(args);
 
-    DrawTextEx(font, text, pos, cfg->textSize, cfg->textSpacingX, color);
-    Vector2 size = MeasureTextEx(font, text, cfg->textSize, cfg->textSpacingX);
-    size.y += cfg->textSpacingY;
+    DrawTextEx(font, text, pos, cfg->text.size, 0, color);
+    Vector2 size = MeasureTextEx(font, text, cfg->text.size, 0);
+    size.y += cfg->text.lineSpacing;
+
+    printf("> %f, %f\n", size.x, size.y);
 
     free(text);
     return size;
@@ -29,34 +31,34 @@ static Vector2 draw_text(Vector2 pos, Color color, char* fmt, ...) {
 
 static void draw_info_section() {
     Vector2 origin = (Vector2){
-        cfg->sectionPadding,
-        cfg->sectionPadding,
+        cfg->sections.padding,
+        cfg->sections.padding,
     };
 
     Vector2 size = (Vector2){
-        cfg->infoLogSectionWidth,
-        cfg->infoSectionHeight,
+        cfg->sections.infoLogWidth,
+        cfg->sections.infoHeight,
     };
 
-    DrawRectangleLines(origin.x, origin.y, size.x, size.y, WHITE);
+    DrawRectangleLines(origin.x, origin.y, size.x, size.y, cfg->colors.fg1);
 
-    Vector2 textPos = (Vector2){
-        .x = origin.x + cfg->sectionPadding,
-        .y = origin.y + cfg->sectionPadding,
+    Vector2 tPos = (Vector2){
+        .x = origin.x + cfg->sections.padding,
+        .y = origin.y + cfg->sections.padding,
     };
 
     BeginScissorMode(
-        origin.x + cfg->sectionPadding,
-        origin.y + cfg->sectionPadding,
-        size.x - 2 * cfg->sectionPadding,
-        size.y - 2 * cfg->sectionPadding
+        origin.x + cfg->sections.padding,
+        origin.y + cfg->sections.padding,
+        size.x - 2 * cfg->sections.padding,
+        size.y - 2 * cfg->sections.padding
     );
 
     float fps = 1.0 / GetFrameTime();
-    textPos.y += draw_text(textPos, WHITE, "fps: %02.2f", fps).y;
+    tPos.y += draw_text(tPos, cfg->colors.fg1, "fps: %02.2f", fps).y;
 
     char* glRenderer = (char*)glGetString(GL_RENDERER);
-    textPos.y += draw_text(textPos, WHITE, "device: %s", glRenderer).y;
+    tPos.y += draw_text(tPos, cfg->colors.fg1, "device: %s", glRenderer).y;
 
     BeginScissorMode(origin.x, origin.y, size.x, size.y);
 
@@ -65,47 +67,48 @@ static void draw_info_section() {
 
 static void draw_log_section() {
     Vector2 origin = (Vector2){
-        cfg->sectionPadding,
-        cfg->infoSectionHeight + cfg->sectionPadding * 2,
+        cfg->sections.padding,
+        cfg->sections.infoHeight + cfg->sections.padding * 2,
     };
 
     Vector2 size = (Vector2){
-        cfg->infoLogSectionWidth,
-        cfg->windowSizeY - cfg->infoSectionHeight - 3 * cfg->sectionPadding,
+        cfg->sections.infoLogWidth,
+        cfg->window.height - cfg->sections.infoHeight
+            - 3 * cfg->sections.padding,
     };
 
-    DrawRectangleLines(origin.x, origin.y, size.x, size.y, WHITE);
+    DrawRectangleLines(origin.x, origin.y, size.x, size.y, cfg->colors.fg1);
 
-    Vector2 textPos = (Vector2){
-        .x = origin.x + cfg->sectionPadding,
-        .y = origin.y + size.y - cfg->sectionPadding - cfg->textSize,
+    Vector2 tPos = (Vector2){
+        .x = origin.x + cfg->sections.padding,
+        .y = origin.y + size.y - cfg->sections.padding - cfg->text.size,
     };
 
     BeginScissorMode(
-        origin.x + cfg->sectionPadding,
-        origin.y + cfg->sectionPadding,
-        size.x - 2 * cfg->sectionPadding,
-        size.y - 2 * cfg->sectionPadding
+        origin.x + cfg->sections.padding,
+        origin.y + cfg->sections.padding,
+        size.x - 2 * cfg->sections.padding,
+        size.y - 2 * cfg->sections.padding
     );
 
     for (int i = 0; i < logger_get_length(cfg->logger); i++) {
         LogMessage* message = logger_get_ith(cfg->logger, i);
-        if (!message || textPos.y < origin.y + cfg->sectionPadding) break;
+        if (!message || tPos.y < origin.y + cfg->sections.padding) break;
 
-        textPos.x = origin.x + cfg->sectionPadding;
+        tPos.x = origin.x + cfg->sections.padding;
 
         switch (message->level) {
             case LOG_LEVEL_DEBUG:
-                textPos.x += draw_text(textPos, BLUE, "DEBUG ").x;
+                tPos.x += draw_text(tPos, BLUE, "DEBUG ").x;
                 break;
             case LOG_LEVEL_INFO:
-                textPos.x += draw_text(textPos, GREEN, "INFO  ").x;
+                tPos.x += draw_text(tPos, GREEN, "INFO  ").x;
                 break;
             case LOG_LEVEL_WARN:
-                textPos.x += draw_text(textPos, ORANGE, "WARN  ").x;
+                tPos.x += draw_text(tPos, ORANGE, "WARN  ").x;
                 break;
             case LOG_LEVEL_ERROR:
-                textPos.x += draw_text(textPos, RED, "ERROR ").x;
+                tPos.x += draw_text(tPos, RED, "ERROR ").x;
                 break;
         }
 
@@ -118,9 +121,9 @@ static void draw_log_section() {
             timeinfo->tm_min,
             timeinfo->tm_sec
         );
-        textPos.x += draw_text(textPos, GRAY, timestamp).x;
+        tPos.x += draw_text(tPos, cfg->colors.fg2, timestamp).x;
 
-        textPos.y -= draw_text(textPos, WHITE, message->text).y;
+        tPos.y -= draw_text(tPos, cfg->colors.fg1, message->text).y;
     }
 
     EndScissorMode();
@@ -128,16 +131,17 @@ static void draw_log_section() {
 
 static void draw_preview_section() {
     Vector2 origin = (Vector2){
-        cfg->infoLogSectionWidth + 2 * cfg->sectionPadding,
-        cfg->sectionPadding,
+        cfg->sections.infoLogWidth + 2 * cfg->sections.padding,
+        cfg->sections.padding,
     };
 
     Vector2 size = (Vector2){
-        cfg->windowSizeX - cfg->infoLogSectionWidth - 3 * cfg->sectionPadding,
-        cfg->windowSizeY - 2 * cfg->sectionPadding,
+        cfg->window.width - cfg->sections.infoLogWidth
+            - 3 * cfg->sections.padding,
+        cfg->window.height - 2 * cfg->sections.padding,
     };
 
-    DrawRectangleLines(origin.x, origin.y, size.x, size.y, WHITE);
+    DrawRectangleLines(origin.x, origin.y, size.x, size.y, cfg->colors.fg1);
 }
 
 void interface_create(Config* config) {
@@ -146,18 +150,21 @@ void interface_create(Config* config) {
     debug(cfg->logger, "creating interface");
 
     debug(cfg->logger, "creating window:");
-    debug(cfg->logger, "- width: %d", cfg->windowSizeX);
-    debug(cfg->logger, "- height: %d", cfg->windowSizeY);
-    debug(cfg->logger, "- title: \"%s\"", cfg->windowTitle);
+    debug(cfg->logger, "- width: %d", cfg->window.width);
+    debug(cfg->logger, "- height: %d", cfg->window.height);
+    debug(cfg->logger, "- title: \"%s\"", cfg->window.title);
 
-    InitWindow(cfg->windowSizeX, cfg->windowSizeY, cfg->windowTitle);
+    InitWindow(cfg->window.width, cfg->window.height, cfg->window.title);
     SetWindowState(FLAG_WINDOW_RESIZABLE);
-    SetWindowMinSize(cfg->windowSizeX, cfg->windowSizeY);
+    SetWindowMinSize(cfg->window.width, cfg->window.height);
     SetTargetFPS(60);
 
-    debug(cfg->logger, "loading font: \"%s\"", cfg->fontFile);
-    font = LoadFontEx(cfg->fontFile, cfg->textSize, NULL, 0);
+    debug(cfg->logger, "loading font: \"%s\"", cfg->text.font);
+    font = LoadFontEx(cfg->text.font, cfg->text.size, NULL, 0);
     SetTextureFilter(font.texture, TEXTURE_FILTER_POINT);
+
+    if (!IsFontReady(font))
+        error(cfg->logger, "failed to load font \"%s\"", cfg->text.font);
 }
 
 void interface_destroy() {
@@ -167,18 +174,18 @@ void interface_destroy() {
 
 void interface_update() {
     if (IsWindowResized()) {
-        cfg->windowSizeX = GetScreenWidth();
-        cfg->windowSizeY = GetScreenHeight();
+        cfg->window.width = GetScreenWidth();
+        cfg->window.height = GetScreenHeight();
         debug(
             cfg->logger,
             "window resized: %dx%d",
-            (int)cfg->windowSizeX,
-            (int)cfg->windowSizeY
+            (int)cfg->window.width,
+            (int)cfg->window.height
         );
     }
 
     BeginDrawing();
-    ClearBackground(BLACK);
+    ClearBackground(cfg->colors.bg);
 
     draw_info_section();
     draw_log_section();

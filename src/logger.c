@@ -49,6 +49,8 @@ LogMessage* logger_get_ith(Logger* logger, int i) {
 }
 
 void logger_log(Logger* logger, LogLevel level, const char* fmt, ...) {
+    if (!logger) return;
+
     va_list args;
     va_start(args, fmt);
     int message_len = vsnprintf(NULL, 0, fmt, args);
@@ -56,6 +58,13 @@ void logger_log(Logger* logger, LogLevel level, const char* fmt, ...) {
     char* message = malloc(message_len + 1);
     vsnprintf(message, message_len + 1, fmt, args);
     va_end(args);
+
+    switch (level) {
+        case LOG_LEVEL_DEBUG: printf("DEBUG | %s\n", message); break;
+        case LOG_LEVEL_INFO: printf("INFO  | %s\n", message); break;
+        case LOG_LEVEL_WARN: printf("WARN  | %s\n", message); break;
+        case LOG_LEVEL_ERROR: printf("ERROR | %s\n", message); break;
+    }
 
     if (logger->hist[logger->next].text) free(logger->hist[logger->next].text);
     logger->hist[logger->next] = (LogMessage){level, time(NULL), message};

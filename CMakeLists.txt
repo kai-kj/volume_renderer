@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.5)
 project(volume_renderer C)
 
 set(CMAKE_C_STANDARD 11)
@@ -8,6 +8,16 @@ set(OPENGL_VERSION "4.3" CACHE STRING "" FORCE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(external/raylib)
+
+add_library(
+        inih
+        external/inih/ini.c
+)
+
+target_include_directories(
+        inih PUBLIC
+        external/inih/
+)
 
 add_executable(
         volume_renderer
@@ -24,7 +34,7 @@ target_include_directories(
         src/
 )
 
-target_link_libraries(volume_renderer raylib)
+target_link_libraries(volume_renderer raylib inih)
 
 target_compile_options(
         volume_renderer PRIVATE
@@ -35,11 +45,4 @@ target_compile_options(
         -Wno-unused-parameter
         -Wno-missing-braces
         -Wno-unused-function
-)
-
-add_custom_command(
-        TARGET volume_renderer POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/assets
-        ${CMAKE_CURRENT_BINARY_DIR}/assets
 )

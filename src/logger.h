@@ -24,7 +24,7 @@ typedef struct Logger Logger;
     logger_log(logger, LOG_LEVEL_INFO, fmt __VA_OPT__(, ) __VA_ARGS__)
 #define warn(logger, fmt, ...)                                                 \
     logger_log(logger, LOG_LEVEL_WARN, fmt __VA_OPT__(, ) __VA_ARGS__)
-#define error(fmt, ...)                                                        \
+#define error(logger, fmt, ...)                                                \
     logger_log(logger, LOG_LEVEL_ERROR, fmt __VA_OPT__(, ) __VA_ARGS__)
 
 Logger* logger_create(int legnth);

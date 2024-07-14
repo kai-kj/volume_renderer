@@ -2,25 +2,37 @@
 #define CONFIG_H
 
 #include "logger.h"
+#include "raylib.h"
 
 typedef struct Config {
     Logger* logger;
 
-    unsigned int windowSizeX;
-    unsigned int windowSizeY;
-    char* windowTitle;
-    char* fontFile;
+    struct {
+        Color bg;
+        Color fg1;
+        Color fg2;
+    } colors;
 
-    int textSize;
-    int textSpacingX;
-    int textSpacingY;
+    struct {
+        int width;
+        int height;
+        char* title;
+    } window;
 
-    unsigned int sectionPadding;
-    unsigned int infoSectionHeight;
-    unsigned int infoLogSectionWidth;
+    struct {
+        char* font;
+        int size;
+        int lineSpacing;
+    } text;
+
+    struct {
+        int padding;
+        int infoHeight;
+        int infoLogWidth;
+    } sections;
 } Config;
 
-Config* config_create_default(Logger* logger);
+Config* config_create(Logger* logger, char* fileName);
 
 void config_destroy(Config* config);
 
