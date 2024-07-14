@@ -1,45 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "raylib.h"
-
 #include "config.h"
 #include "interface.h"
 #include "logger.h"
 
-typedef struct {
-    Vector4 color;
-    Vector4 properties;
-} Voxel;
-
 int main() {
-    logger_create(256);
+    Logger* logger = logger_create(256);
+    Config* config = config_create_default(logger);
 
-    InitWindow(cfg.windowSize.x, cfg.windowSize.y, "Volume renderer");
-    SetWindowState(FLAG_WINDOW_RESIZABLE);
-    SetWindowMinSize(cfg.windowSize.x, cfg.windowSize.y);
+    interface_create(config);
 
-    SetTargetFPS(60);
+    info(logger, "starting app");
 
-    cfg.font
-        = LoadFontEx("../assets/ubuntu.mono.ttf", cfg.textSize * 2, NULL, 0);
-
-    info("starting app");
-
-    while (!WindowShouldClose()) {
-        if (IsWindowResized()) {
-            cfg.windowSize.x = GetScreenWidth();
-            cfg.windowSize.y = GetScreenHeight();
-            debug(
-                "window resized: %dx%d",
-                (int)cfg.windowSize.x,
-                (int)cfg.windowSize.y
-            );
-        }
-
-        update_interface();
+    while (!interface_should_close()) {
+        interface_update();
     }
 
-    CloseWindow();
-    logger_destroy();
+    info(logger, "stopping app");
+
+    interface_destroy();
+    config_destroy(config);
+    logger_destroy(logger);
 }

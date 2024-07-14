@@ -13,23 +13,28 @@ typedef enum LogLevel {
 typedef struct LogMessage {
     LogLevel level;
     time_t time;
-    char *text;
+    char* text;
 } LogMessage;
 
+typedef struct Logger Logger;
 
-#define debug(fmt, ...) logger_log(LOG_LEVEL_DEBUG, fmt __VA_OPT__(, ) __VA_ARGS__)
-#define info(fmt, ...) logger_log(LOG_LEVEL_INFO, fmt __VA_OPT__(, ) __VA_ARGS__)
-#define warn(fmt, ...) logger_log(LOG_LEVEL_WARN, fmt __VA_OPT__(, ) __VA_ARGS__)
-#define error(fmt, ...) logger_log(LOG_LEVEL_ERROR, fmt __VA_OPT__(, ) __VA_ARGS__)
+#define debug(logger, fmt, ...)                                                \
+    logger_log(logger, LOG_LEVEL_DEBUG, fmt __VA_OPT__(, ) __VA_ARGS__)
+#define info(logger, fmt, ...)                                                 \
+    logger_log(logger, LOG_LEVEL_INFO, fmt __VA_OPT__(, ) __VA_ARGS__)
+#define warn(logger, fmt, ...)                                                 \
+    logger_log(logger, LOG_LEVEL_WARN, fmt __VA_OPT__(, ) __VA_ARGS__)
+#define error(fmt, ...)                                                        \
+    logger_log(logger, LOG_LEVEL_ERROR, fmt __VA_OPT__(, ) __VA_ARGS__)
 
-void logger_create(int legnth);
+Logger* logger_create(int legnth);
 
-void logger_destroy();
+void logger_destroy(Logger* logger);
 
-int logger_get_length();
+int logger_get_length(Logger* logger);
 
-LogMessage *logger_get_ith(int i);
+LogMessage* logger_get_ith(Logger* logger, int i);
 
-void logger_log(LogLevel level, const char *fmt, ...);
+void logger_log(Logger* logger, LogLevel level, const char* fmt, ...);
 
-#endif //LOGGER_H
+#endif // LOGGER_H

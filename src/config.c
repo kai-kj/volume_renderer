@@ -1,12 +1,34 @@
 #include "config.h"
 
-Config cfg = (Config){
-    .windowSize = (Vector2){.x = 1000, .y = 600},
+#include <stdlib.h>
 
-    .textSize = 16,
-    .textSpacingV = 2,
-    .textSpacingH = 0,
+Config* config_create_default(Logger* logger) {
+    Config* config = malloc(sizeof *config);
 
-    .sectionPadding = 10,
-    .logSectionWidth = 400,
-};
+    *config = (Config){
+        .logger = logger,
+
+        .windowSizeX = 1000,
+        .windowSizeY = 600,
+        .windowTitle = "Volumn renderer",
+        .fontFile = "assets/UbuntuMono.ttf",
+
+        .textSize = 14,
+        .textSpacingX = 0,
+        .textSpacingY = 2,
+
+        .sectionPadding = 10,
+        .infoSectionHeight = 200,
+        .infoLogSectionWidth = 400,
+    };
+
+    debug(config->logger, "creating default config");
+    return config;
+}
+
+void config_destroy(Config* config) {
+    if (!config) return;
+
+    debug(config->logger, "destroying config");
+    free(config);
+}

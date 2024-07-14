@@ -1,21 +1,27 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "raylib.h"
+#include "logger.h"
 
 typedef struct Config {
-    Vector2 windowSize;
+    Logger* logger;
+
+    unsigned int windowSizeX;
+    unsigned int windowSizeY;
+    char* windowTitle;
+    char* fontFile;
 
     int textSize;
-    int textSpacingV;
-    int textSpacingH;
+    int textSpacingX;
+    int textSpacingY;
 
-    Font font;
-
-    int sectionPadding;
-    int logSectionWidth;
+    unsigned int sectionPadding;
+    unsigned int infoSectionHeight;
+    unsigned int infoLogSectionWidth;
 } Config;
 
-extern Config cfg;
+Config* config_create_default(Logger* logger);
+
+void config_destroy(Config* config);
 
 #endif // CONFIG_H

@@ -36,3 +36,10 @@ target_compile_options(
         -Wno-missing-braces
         -Wno-unused-function
 )
+
+add_custom_command(
+        TARGET volume_renderer POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets
+        ${CMAKE_CURRENT_BINARY_DIR}/assets
+)
